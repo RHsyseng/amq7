@@ -19,7 +19,6 @@ import com.diffplug.common.base.Errors;
 import com.google.common.collect.ImmutableMap;
 import com.redhat.refarch.amq7.BrokerClient;
 import com.redhat.refarch.amq7.cluster.ClusterBaseTest;
-import com.redhat.refarch.amq7.cluster.SymmetricClusterTest;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;

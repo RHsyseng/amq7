@@ -3,7 +3,6 @@ package com.redhat.refarch.amq7.single;
 import com.google.common.collect.ImmutableMap;
 import com.redhat.refarch.amq7.BrokerClient;
 import com.redhat.refarch.amq7.cluster.ClusterBaseTest;
-import com.redhat.refarch.amq7.cluster.SymmetricClusterTest;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

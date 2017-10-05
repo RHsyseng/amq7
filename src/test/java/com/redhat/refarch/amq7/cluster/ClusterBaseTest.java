@@ -47,7 +47,7 @@ public class ClusterBaseTest {
             Assert.fail();
         }
     }
-    
+
     protected static void terminateClient(BrokerClient client) {
         if (client != null)
             client.terminateConnections();
