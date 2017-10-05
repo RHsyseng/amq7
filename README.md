@@ -1,77 +1,67 @@
-# Project Title
+# AMQ 7 Reference Architecture Test Suite
 
-AMQ7 RefArch project showcasing various broker uses, clustering, high-availability & interconnect routing features.
+AMQ7 RefArch project using JMS to showcase various broker uses, clustering, high-availability & interconnect routing features.
 
-### Prerequisites
+## Prerequisites
 
-OpenShift 3.X environment
+* JDK 1.8+
+* Maven
+* OpenShift 3.X environment running broker/router topologies from [correlating project](https://github.com/jeremyary/amq7-image).
 
-### Installing
+## Test Suite
 
-Create a new project on OpenShift:
+The included tests are, in essence, runner scripts that are best consume individually to understand the aspect showcased within each. 
 
-```
-oc new-project amq
-```
+### Standalone AMQ7 Broker
 
-Create the base AMQ7 S2I image from template:
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
+Demonstrates AMQ7 queue & topic interactivity and various basic EIP patterns via JMS.
 
 ```
-Give an example
+mvn -Dtest=SingleBrokerTest test
 ```
 
-### And coding style tests
+### 3-Node Symmetric AMQ7 Broker Cluster
 
-Explain what these tests test and why
+Demonstrates AMQ7 queue & topic interactivity across a 3-broker symmetric cluster via JMS.
 
 ```
-Give an example
+mvn -Dtest=SymmetricClusterTest test
 ```
 
-## Deployment
+### 3-Pair Master/Slave AMQ7 Broker Failover Cluster
 
-Add additional notes about how to deploy this on a live system
+Demonstrates producing/consuming to/from queues before and after a master broker failover scenario via JMS.
 
-## Built With
+```
+mvn -Dtest=ReplicatedFailoverTest test
+```
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+### 7-Node Interconnect Router Topology
 
-## Contributing
+Demonstrates various Interconnect routing mechanisms across a topology featuring several inter-router connections and multiple endpoint listeners for client 
+connectivity via JMS.
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+* Direct produce/consume:
+```
+mvn -Dtest=InterconnectTest#testSendDirect test
+```
 
-## Versioning
+* Multicast from a single producer to 4 consumers:
+```
+mvn -Dtest=InterconnectTest#testSendMulticast test
+```
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+* Balanced multi-consumer distribution with equal route weight:
+```
+mvn -Dtest=testSendBalancedSameHops test
+```
 
-## Authors
+* Balanced multi-consumer distribution with differentiating route weight:
+```
+mvn -Dtest=testSendBalancedDifferentHops test
+```
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
+* Single-consumer routing to closest consumer based on origin point:
+```
+mvn -Dtest=testSendClosest test
+```

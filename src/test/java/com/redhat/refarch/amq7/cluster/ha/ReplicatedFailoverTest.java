@@ -34,9 +34,9 @@ import java.util.stream.IntStream;
 
 import static com.redhat.refarch.amq7.Constants.*;
 
-public class ReplicatedFailbackTest extends ClusterBaseTest {
+public class ReplicatedFailoverTest extends ClusterBaseTest {
 
-    private final static Logger logger = LoggerFactory.getLogger(ReplicatedFailbackTest.class);
+    private final static Logger logger = LoggerFactory.getLogger(ReplicatedFailoverTest.class);
 
     private static Map<String, BrokerDelegate> brokers;
 
@@ -72,7 +72,7 @@ public class ReplicatedFailbackTest extends ClusterBaseTest {
         for (int i = 1; i <= numMessages; i++) {
 
             if (i <= (numMessages / 2)) {
-                brokers.keySet().forEach(Errors.rethrow().wrap(ReplicatedFailbackTest::acknowledgeMessage));
+                brokers.keySet().forEach(Errors.rethrow().wrap(ReplicatedFailoverTest::acknowledgeMessage));
 
             } else {
                 brokers.keySet().forEach(Errors.rethrow().wrap(broker -> {
