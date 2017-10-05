@@ -19,7 +19,7 @@ public class InterconnectTest {
 
     private final static Logger logger = LoggerFactory.getLogger(InterconnectTest.class);
 
-    static private Map<String, InterconnectClient> routers;
+    static private Map<String, InterconnectClient> clients;
 
     private InitialContext initialContext;
 
@@ -43,7 +43,7 @@ public class InterconnectTest {
         try {
             logger.debug("routing path: CA -> US -> EU -> DE");
             logger.debug("creating CA and DE router connections...");
-            routers = ImmutableMap.of(
+            clients = ImmutableMap.of(
                     INTERCONNECT_CA.val(), new InterconnectClient(initialContext, INTERCONNECT_CA.val(), QUEUE_NAME.val(), false, true),
                     INTERCONNECT_DE.val(), new InterconnectClient(initialContext, INTERCONNECT_DE.val(), QUEUE_NAME.val(), true, false)
             );
@@ -52,14 +52,14 @@ public class InterconnectTest {
             Thread.sleep(1000);
 
             logger.debug("sending 10 messages via CA...");
-            routers.get(INTERCONNECT_CA.val()).sendToQueue(10);
+            clients.get(INTERCONNECT_CA.val()).sendToQueue(10);
 
             logger.debug("receiving 10 messages from DE router...");
-            routers.get(INTERCONNECT_DE.val()).receiveFromQueue(10);
+            clients.get(INTERCONNECT_DE.val()).receiveFromQueue(10);
 
         } finally {
             logger.debug("terminating clients...");
-            routers.values().forEach(InterconnectTest::terminateClient);
+            clients.values().forEach(InterconnectTest::terminateClient);
         }
     }
 
@@ -69,7 +69,7 @@ public class InterconnectTest {
         try {
             logger.debug("routing path: AU -> EU -> UK,DE,US -> CA,ME");
             logger.debug("creating router connections...");
-            routers = ImmutableMap.of(
+            clients = ImmutableMap.of(
                     INTERCONNECT_AU.val(), new InterconnectClient(initialContext, INTERCONNECT_AU.val(), MULTICAST_QUEUE.val(), false, true),
                     INTERCONNECT_CA.val(), new InterconnectClient(initialContext, INTERCONNECT_CA.val(), MULTICAST_QUEUE.val(), true, false),
                     INTERCONNECT_ME.val(), new InterconnectClient(initialContext, INTERCONNECT_ME.val(), MULTICAST_QUEUE.val(), true, false),
@@ -81,17 +81,17 @@ public class InterconnectTest {
             Thread.sleep(1000);
 
             logger.debug("sending 10 messages via CA...");
-            routers.get(INTERCONNECT_AU.val()).sendToQueue(10);
+            clients.get(INTERCONNECT_AU.val()).sendToQueue(10);
 
-            logger.debug("receiving 10 messages from all 4 multicast recipient routers...");
-            routers.get(INTERCONNECT_CA.val()).receiveFromQueue(10);
-            routers.get(INTERCONNECT_ME.val()).receiveFromQueue(10);
-            routers.get(INTERCONNECT_UK.val()).receiveFromQueue(10);
-            routers.get(INTERCONNECT_DE.val()).receiveFromQueue(10);
+            logger.debug("receiving 10 messages from all 4 multicast recipient clients...");
+            clients.get(INTERCONNECT_CA.val()).receiveFromQueue(10);
+            clients.get(INTERCONNECT_ME.val()).receiveFromQueue(10);
+            clients.get(INTERCONNECT_UK.val()).receiveFromQueue(10);
+            clients.get(INTERCONNECT_DE.val()).receiveFromQueue(10);
 
         } finally {
             logger.debug("terminating clients...");
-            routers.values().forEach(InterconnectTest::terminateClient);
+            clients.values().forEach(InterconnectTest::terminateClient);
         }
     }
 
@@ -100,7 +100,7 @@ public class InterconnectTest {
 
         try {
             logger.debug("creating router connections...");
-            routers = ImmutableMap.of(
+            clients = ImmutableMap.of(
                     INTERCONNECT_AU.val(), new InterconnectClient(initialContext, INTERCONNECT_AU.val(), BALANCED_QUEUE.val(), false, true),
                     INTERCONNECT_CA.val(), new InterconnectClient(initialContext, INTERCONNECT_CA.val(), BALANCED_QUEUE.val(), true, false),
                     INTERCONNECT_ME.val(), new InterconnectClient(initialContext, INTERCONNECT_ME.val(), BALANCED_QUEUE.val(), true, false)
@@ -110,17 +110,17 @@ public class InterconnectTest {
             Thread.sleep(1000);
 
             logger.debug("sending 20 messages via AU...");
-            routers.get(INTERCONNECT_AU.val()).sendToQueue(20);
+            clients.get(INTERCONNECT_AU.val()).sendToQueue(20);
 
-            logger.debug("receiving equal number of balanced messages from CA and ME routers...");
-            routers.get(INTERCONNECT_CA.val()).receiveFromQueue(10);
-            routers.get(INTERCONNECT_ME.val()).receiveFromQueue(10);
+            logger.debug("receiving equal number of balanced messages from CA and ME clients...");
+            clients.get(INTERCONNECT_CA.val()).receiveFromQueue(10);
+            clients.get(INTERCONNECT_ME.val()).receiveFromQueue(10);
 
             logger.debug("verifying there are no more than half of the messages on one of the receivers...");
             Arrays.asList(INTERCONNECT_CA.val(), INTERCONNECT_ME.val()).forEach(brokerName -> {
                 try {
                     Assert.assertNull("11th message on " + brokerName + " not null",
-                            routers.get(brokerName).queueConsumer().receive(Long.valueOf(TIMEOUT.val())));
+                            clients.get(brokerName).queueConsumer().receive(Long.valueOf(TIMEOUT.val())));
 
                 } catch (Exception e) {
                     logger.error("error fetching 11th (null) message from " + brokerName, e);
@@ -130,7 +130,7 @@ public class InterconnectTest {
 
         } finally {
             logger.debug("terminating clients...");
-            routers.values().forEach(InterconnectTest::terminateClient);
+            clients.values().forEach(InterconnectTest::terminateClient);
         }
     }
 
@@ -139,7 +139,7 @@ public class InterconnectTest {
 
         try {
             logger.debug("creating router connections...");
-            routers = ImmutableMap.of(
+            clients = ImmutableMap.of(
                     INTERCONNECT_AU.val(), new InterconnectClient(initialContext, INTERCONNECT_AU.val(), BALANCED_QUEUE.val(), false, true),
                     INTERCONNECT_CA.val(), new InterconnectClient(initialContext, INTERCONNECT_CA.val(), BALANCED_QUEUE.val(), true, false),
                     INTERCONNECT_ME.val(), new InterconnectClient(initialContext, INTERCONNECT_ME.val(), BALANCED_QUEUE.val(), true, false),
@@ -151,13 +151,13 @@ public class InterconnectTest {
             Thread.sleep(1000);
 
             logger.debug("sending 20 messages via AU...");
-            routers.get(INTERCONNECT_AU.val()).sendToQueue(20);
+            clients.get(INTERCONNECT_AU.val()).sendToQueue(20);
 
-            logger.debug("due to routing weight, receiving less balanced messages from CA/ME than from UK/DE routers...");
-            int countCA = routers.get(INTERCONNECT_CA.val()).receiveAllFromQueue();
-            int countME = routers.get(INTERCONNECT_ME.val()).receiveAllFromQueue();
-            int countUK = routers.get(INTERCONNECT_UK.val()).receiveAllFromQueue();
-            int countDE = routers.get(INTERCONNECT_DE.val()).receiveAllFromQueue();
+            logger.debug("due to routing weight, receiving less balanced messages from CA/ME than from UK/DE clients...");
+            int countCA = clients.get(INTERCONNECT_CA.val()).receiveAllFromQueue();
+            int countME = clients.get(INTERCONNECT_ME.val()).receiveAllFromQueue();
+            int countUK = clients.get(INTERCONNECT_UK.val()).receiveAllFromQueue();
+            int countDE = clients.get(INTERCONNECT_DE.val()).receiveAllFromQueue();
 
             logger.debug("asserting yield after weighted routing is 3 messages to CA/ME each, and 7 messages to UK/DE each...");
             Assert.assertEquals(3, countCA);
@@ -167,7 +167,7 @@ public class InterconnectTest {
 
         } finally {
             logger.debug("terminating clients...");
-            routers.values().forEach(InterconnectTest::terminateClient);
+            clients.values().forEach(InterconnectTest::terminateClient);
         }
     }
 
@@ -176,7 +176,7 @@ public class InterconnectTest {
 
         try {
             logger.debug("creating router connections...");
-            routers = ImmutableMap.of(
+            clients = ImmutableMap.of(
                     INTERCONNECT_CA.val(), new InterconnectClient(initialContext, INTERCONNECT_CA.val(), CLOSEST_QUEUE.val(), false, true),
                     INTERCONNECT_DE.val(), new InterconnectClient(initialContext, INTERCONNECT_DE.val(), CLOSEST_QUEUE.val(), false, true),
                     INTERCONNECT_ME.val(), new InterconnectClient(initialContext, INTERCONNECT_ME.val(), CLOSEST_QUEUE.val(), true, false),
@@ -187,16 +187,16 @@ public class InterconnectTest {
             Thread.sleep(1000);
 
             logger.debug("sending closest message from CA and asserting ME receives...");
-            routers.get(INTERCONNECT_CA.val()).sendToQueue();
-            routers.get(INTERCONNECT_ME.val()).receiveFromQueue();
+            clients.get(INTERCONNECT_CA.val()).sendToQueue();
+            clients.get(INTERCONNECT_ME.val()).receiveFromQueue();
 
             logger.debug("sending closest message from DE and asserting UK receives...");
-            routers.get(INTERCONNECT_DE.val()).sendToQueue();
-            routers.get(INTERCONNECT_UK.val()).receiveFromQueue();
+            clients.get(INTERCONNECT_DE.val()).sendToQueue();
+            clients.get(INTERCONNECT_UK.val()).receiveFromQueue();
 
         } finally {
             logger.debug("terminating clients...");
-            routers.values().forEach(InterconnectTest::terminateClient);
+            clients.values().forEach(InterconnectTest::terminateClient);
         }
     }
 
