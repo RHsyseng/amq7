@@ -1,6 +1,7 @@
 # AMQ 7 Reference Architecture Test Suite
 
-AMQ7 RefArch test suite using JMS to showcase various broker uses, clustering, high-availability & interconnect routing features. The included tests are, in essence, runner scripts that are best consume individually to understand the aspect showcased within each.
+AMQ7 RefArch test suite using JMS to showcase various broker uses, clustering, high-availability & interconnect routing features. The included tests are, in essence, runner scripts that are best 
+consumed individually to understand the aspect showcased within each.
 
 ## Prerequisites
 
