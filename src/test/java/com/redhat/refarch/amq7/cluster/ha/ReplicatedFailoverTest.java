@@ -17,8 +17,9 @@ package com.redhat.refarch.amq7.cluster.ha;
 
 import com.diffplug.common.base.Errors;
 import com.google.common.collect.ImmutableMap;
-import com.redhat.refarch.amq7.BrokerDelegate;
+import com.redhat.refarch.amq7.BrokerClient;
 import com.redhat.refarch.amq7.cluster.ClusterBaseTest;
+import com.redhat.refarch.amq7.cluster.SymmetricClusterTest;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ReplicatedFailoverTest extends ClusterBaseTest {
 
     private final static Logger logger = LoggerFactory.getLogger(ReplicatedFailoverTest.class);
 
-    private static Map<String, BrokerDelegate> brokers;
+    private static Map<String, BrokerClient> clients;
 
     @After
     public void after() {
@@ -48,56 +49,57 @@ public class ReplicatedFailoverTest extends ClusterBaseTest {
     @Test
     public void testReplicatedFailback() throws Exception {
 
-        logger.debug("creating brokers...");
-        brokers = ImmutableMap.of(
-                REPLICATED_M1.val(), new BrokerDelegate(initialContext, REPLICATED_M1.val(),
+        try {
+        logger.debug("creating clients...");
+        clients = ImmutableMap.of(
+                REPLICATED_M1.val(), new BrokerClient(initialContext, REPLICATED_M1.val(),
                         false, true, false, true, false),
-                REPLICATED_M2.val(), new BrokerDelegate(initialContext, REPLICATED_M2.val(),
+                REPLICATED_M2.val(), new BrokerClient(initialContext, REPLICATED_M2.val(),
                         false, true, false, true, false),
-                REPLICATED_M3.val(), new BrokerDelegate(initialContext, REPLICATED_M3.val(),
+                REPLICATED_M3.val(), new BrokerClient(initialContext, REPLICATED_M3.val(),
                         false, true, false, true, false)
         );
 
         Integer numMessages = 20;
 
         logger.debug("send " + numMessages + " messages via producer to all 3 master brokers...");
-        brokers.get(REPLICATED_M1.val()).sendToQueue(numMessages);
-        brokers.get(REPLICATED_M2.val()).sendToQueue(numMessages);
-        brokers.get(REPLICATED_M3.val()).sendToQueue(numMessages);
+        clients.get(REPLICATED_M1.val()).sendToQueue(numMessages);
+        clients.get(REPLICATED_M2.val()).sendToQueue(numMessages);
+        clients.get(REPLICATED_M3.val()).sendToQueue(numMessages);
 
         Map<String, List<Message>> nonAckMessages = new HashMap<>();
-        brokers.keySet().forEach(broker -> nonAckMessages.put(broker, new ArrayList<>()));
+        clients.keySet().forEach(brokerName -> nonAckMessages.put(brokerName, new ArrayList<>()));
 
         logger.debug("receiving all, but only acknowledging half of messages on all 3 master brokers...");
         for (int i = 1; i <= numMessages; i++) {
 
             if (i <= (numMessages / 2)) {
-                brokers.keySet().forEach(Errors.rethrow().wrap(ReplicatedFailoverTest::acknowledgeMessage));
+                clients.keySet().forEach(Errors.rethrow().wrap(ReplicatedFailoverTest::acknowledgeMessage));
 
             } else {
-                brokers.keySet().forEach(Errors.rethrow().wrap(broker -> {
-                    nonAckMessages.get(broker).add(brokers.get(broker).queueConsumer().receive(Long.valueOf(TIMEOUT.val())));
+                clients.keySet().forEach(Errors.rethrow().wrap(brokerName -> {
+                    nonAckMessages.get(brokerName).add(clients.get(brokerName).queueConsumer().receive(Long.valueOf(TIMEOUT.val())));
                 }));
             }
         }
 
         logger.debug("shutting down master broker m2 via Mgmt API forceFailover()...");
-        brokers.get(REPLICATED_M2.val()).sendShutdown();
+        clients.get(REPLICATED_M2.val()).sendShutdown();
 
         logger.debug("verifying rec'd-only messages fail to ack if on a failover broker...");
-        nonAckMessages.forEach((broker, messages) -> {
+        nonAckMessages.forEach((brokerName, messages) -> {
             try {
-                logger.debug("attempting to ack " + messages.size() + " messages from broker " + broker + " post-shutdown...");
+                logger.debug("attempting to ack " + messages.size() + " messages from broker " + brokerName + " post-shutdown...");
                 messages.forEach(Errors.rethrow().wrap(Message::acknowledge));
 
                 // fail if message that should have failed over to slave is able to ack
-                if (broker.equals(REPLICATED_M2.val())) {
+                if (brokerName.equals(REPLICATED_M2.val())) {
                     logger.error("failover message should not have been able to ack");
                     Assert.fail();
                 }
 
             } catch (Exception e) {
-                if (!broker.equals(REPLICATED_M2.val())) {
+                if (!brokerName.equals(REPLICATED_M2.val())) {
                     logger.error("non-failover message should have been able to ack");
                     Assert.fail();
                 } else {
@@ -115,9 +117,14 @@ public class ReplicatedFailoverTest extends ClusterBaseTest {
                 Assert.fail();
             }
         });
+
+        } finally {
+            logger.debug("terminating clients...");
+            clients.values().forEach(ReplicatedFailoverTest::terminateClient);
+        }
     }
 
-    private static void acknowledgeMessage(String broker) throws Exception {
-        brokers.get(broker).ackFromQueue();
+    private static void acknowledgeMessage(String brokerName) throws Exception {
+        clients.get(brokerName).ackFromQueue();
     }
 }

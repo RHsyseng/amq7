@@ -35,7 +35,9 @@ public enum Constants {
     BALANCED_QUEUE(null),
     CLOSEST_QUEUE(null),
 
-    SINGLE("b1"),
+    SINGLE_A("b1"),
+    SINGLE_B("b2"),
+    SINGLE_C("b3"),
 
     SYMMETRIC_1("s1"),
     SYMMETRIC_2("s2"),

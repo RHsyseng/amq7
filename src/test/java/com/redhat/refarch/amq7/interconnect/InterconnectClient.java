@@ -29,19 +29,20 @@ import static com.redhat.refarch.amq7.Constants.TIMEOUT;
 /***
  * @author jary@redhat.com
  */
-class RouterDelegate {
+class InterconnectClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(RouterDelegate.class);
+    private static final Logger logger = LoggerFactory.getLogger(InterconnectClient.class);
 
     private Session session;
+    private Connection connection;
 
     private MessageConsumer queueConsumer;
     private MessageProducer queueProducer;
 
-    RouterDelegate(InitialContext initialContext, String routerName, String queueName, Boolean consumeQueue, Boolean produceToQueue) throws Exception {
+    InterconnectClient(InitialContext initialContext, String routerName, String queueName, Boolean consumeQueue, Boolean produceToQueue) throws Exception {
 
         ConnectionFactory connectionFactory = (ConnectionFactory) initialContext.lookup(routerName + "/ConnectionFactory");
-        Connection connection = connectionFactory.createConnection();
+        connection = connectionFactory.createConnection();
 
         connection.setExceptionListener((JMSException e) -> {
             logger.error("[CLIENT] connectionExceptionListener triggered, exiting connection", e);
@@ -107,10 +108,34 @@ class RouterDelegate {
             count++;
 
         } while (message != null);
-        return count;
+        return count - 1;
     }
 
     void receiveFromQueue() throws Exception {
         receiveFromQueue(1);
+    }
+
+    void terminateConnections() {
+        try {
+
+            if (queueConsumer != null)
+                queueConsumer.close();
+
+            if (queueProducer != null)
+                queueProducer.close();
+
+            if (session != null)
+                session.close();
+
+            if (connection != null)
+                connection.close();
+
+        } catch (Exception e) {
+            logger.error("error occurred while shutting down client", e);
+        }
+    }
+
+    MessageConsumer queueConsumer() {
+        return queueConsumer;
     }
 }

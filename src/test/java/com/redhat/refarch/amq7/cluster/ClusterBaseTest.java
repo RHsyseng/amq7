@@ -15,6 +15,7 @@
  */
 package com.redhat.refarch.amq7.cluster;
 
+import com.redhat.refarch.amq7.BrokerClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.slf4j.Logger;
@@ -45,5 +46,10 @@ public class ClusterBaseTest {
             logger.error("error instantiating InitialContext before test", e);
             Assert.fail();
         }
+    }
+    
+    protected static void terminateClient(BrokerClient client) {
+        if (client != null)
+            client.terminateConnections();
     }
 }

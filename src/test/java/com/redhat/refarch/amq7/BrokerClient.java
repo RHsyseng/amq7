@@ -32,9 +32,9 @@ import static com.redhat.refarch.amq7.Constants.*;
 /***
  * @author jary@redhat.com
  */
-public class BrokerDelegate {
+public class BrokerClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(BrokerDelegate.class);
+    private static final Logger logger = LoggerFactory.getLogger(BrokerClient.class);
 
     private Session session;
     private Connection connection;
@@ -45,8 +45,8 @@ public class BrokerDelegate {
     private MessageProducer queueProducer;
     private MessageProducer topicProducer;
 
-    public BrokerDelegate(InitialContext initialContext, String brokerName, boolean autoAck, boolean consumeQueue, boolean consumeTopic,
-                          boolean produceToQueue, boolean produceToTopic) throws Exception {
+    public BrokerClient(InitialContext initialContext, String brokerName, boolean autoAck, boolean consumeQueue, boolean consumeTopic,
+                        boolean produceToQueue, boolean produceToTopic) throws Exception {
 
         ConnectionFactory connectionFactory = (ConnectionFactory) initialContext.lookup(brokerName + "/ConnectionFactory");
         connection = connectionFactory.createConnection(USERNAME.val(), PASSWORD.val());
@@ -116,10 +116,6 @@ public class BrokerDelegate {
         });
     }
 
-    public void receiveFromQueue() throws Exception {
-        receiveFromQueue(1);
-    }
-
     public void ackFromQueue(Integer count) throws Exception {
 
         if (queueConsumer == null)
@@ -171,6 +167,32 @@ public class BrokerDelegate {
                 // we killed the broker - a connection failure is expected, throw anything else
                 throw e;
             }
+        }
+    }
+
+    public void terminateConnections() {
+        try {
+
+            if (queueConsumer != null)
+                queueConsumer.close();
+
+            if (topicConsumer != null)
+                topicConsumer.close();
+
+            if (queueProducer != null)
+                queueProducer.close();
+
+            if (topicProducer != null)
+                topicProducer.close();
+
+            if (session != null)
+                session.close();
+
+            if (connection != null)
+                connection.close();
+
+        } catch (Exception e) {
+            logger.error("error occurred while shutting down client", e);
         }
     }
 
