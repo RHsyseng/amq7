@@ -24,7 +24,7 @@ mvn -Dtest=SingleBrokerTest test
 
 Demonstrates AMQ7 queue & topic interactivity across a 3-broker symmetric cluster via JMS.
 
-![Symmetric Broker Cluster Topology](images/symmetric.png?raw=true "Symmetric Broker Cluster Topology")
+![Symmetric Broker Cluster Topology](images/Symmetric.png?raw=true "Symmetric Broker Cluster Topology")
 
 ```
 mvn -Dtest=SymmetricClusterTest test
@@ -34,7 +34,7 @@ mvn -Dtest=SymmetricClusterTest test
 
 Demonstrates producing/consuming to/from queues before and after a master broker failover scenario via JMS.
 
-![Replication Cluster Topology](images/replication.png?raw=true "Replication Cluster Topology")
+![Replication Cluster Topology](images/Replication.png?raw=true "Replication Cluster Topology")
 
 ```
 mvn -Dtest=ReplicatedFailoverTest test
@@ -45,7 +45,7 @@ mvn -Dtest=ReplicatedFailoverTest test
 Demonstrates various Interconnect routing mechanisms across a topology featuring several inter-router connections and multiple endpoint listeners for client 
 connectivity via JMS.
 
-![Interconnect Topology](images/interconnect.png?raw=true "Interconnect Topology")
+![Interconnect Topology](images/Interconnect.png?raw=true "Interconnect Topology")
 
 * Direct produce/consume:
 ```
