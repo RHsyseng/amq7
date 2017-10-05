@@ -1,6 +1,6 @@
 # AMQ 7 Reference Architecture Test Suite
 
-AMQ7 RefArch project using JMS to showcase various broker uses, clustering, high-availability & interconnect routing features.
+AMQ7 RefArch test suite using JMS to showcase various broker uses, clustering, high-availability & interconnect routing features. The included tests are, in essence, runner scripts that are best consume individually to understand the aspect showcased within each.
 
 ## Prerequisites
 
@@ -8,11 +8,7 @@ AMQ7 RefArch project using JMS to showcase various broker uses, clustering, high
 * Maven
 * OpenShift 3.X environment running broker/router topologies from [correlating project](https://github.com/jeremyary/amq7-image).
 
-## Test Suite
-
-The included tests are, in essence, runner scripts that are best consume individually to understand the aspect showcased within each. 
-
-### Standalone AMQ7 Broker
+## Standalone AMQ7 Broker
 
 Demonstrates AMQ7 queue & topic interactivity and various basic EIP patterns via JMS.
 
@@ -20,7 +16,7 @@ Demonstrates AMQ7 queue & topic interactivity and various basic EIP patterns via
 mvn -Dtest=SingleBrokerTest test
 ```
 
-### 3-Node Symmetric AMQ7 Broker Cluster
+## 3-Node Symmetric AMQ7 Broker Cluster
 
 ![Symmetric Broker Cluster Topology](images/Symmetric.png?raw=true "Symmetric Broker Cluster Topology")
 
@@ -40,7 +36,7 @@ Demonstrates producing/consuming to/from queues before and after a master broker
 mvn -Dtest=ReplicatedFailoverTest test
 ```
 
-### 7-Node Interconnect Router Topology
+## 7-Node Interconnect Router Topology
 
 ![Interconnect Topology](images/Interconnect.png?raw=true "Interconnect Topology")
 
