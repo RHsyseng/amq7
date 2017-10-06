@@ -21,7 +21,7 @@ AMQ 7 expands its support of popular messaging APIs and protocols by adding new 
 support for the popular open protocols MQTT and AMQP, AMQ 7 now offers broad interoperability across the IT landscape that can open up data in embedded devices to inspection, analysis, and control.
 
 ### Interconnect
-The new Interconnect router in AMQ 7 enables users to create an internet-scale network of uniformly-addressed messaging paths spanning data centers, cloud services, and geographic zones. The 
+The new *Interconnect* router in AMQ 7 enables users to create an internet-scale network of uniformly-addressed messaging paths spanning data centers, cloud services, and geographic zones. The 
 interconnect component serves as the backbone for distributed messaging, providing redundant network pathing for fault handling, traffic optimization, and more secure and reliable connectivity.
 
 ## Project Components
