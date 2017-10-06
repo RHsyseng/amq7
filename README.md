@@ -1,70 +1,36 @@
 # AMQ 7 Reference Architecture Test Suite
 
-AMQ7 RefArch test suite using JMS to showcase various broker uses, clustering, high-availability & interconnect routing features. The included tests are, in essence, runner scripts that are best 
-consumed individually to understand the aspect showcased within each.
+This reference architecture demonstrates basic messaging patterns with single-broker, clustered, and fault-tolerant Red Hat JBoss AMQ 7 topologies, as well as direct, closest, balanced and 
+multicast Interconnect routing configurations.
 
-## Prerequisites
+== Overview ==
+Based on the upstream Apache ActiveMQ and Apache Qpid community projects, Red Hat JBoss AMQ 7 is a lightweight, standards-based open source messaging platform designed to enable real-time 
+communication between different applications, services, devices, and Internet of Things (IoT) devices. It also serves as the messaging foundation for Red Hat JBoss Fuse, Red Hat’s lightweight, 
+flexible integration platform, and is designed to provide the real-time, distributed messaging capabilities needed to support an agile integration approach for modern application development.
 
-* JDK 1.8+
-* Maven
-* OpenShift 3.X environment running broker/router topologies from [correlating project](https://github.com/jeremyary/amq7-image).
+AMQ 7 introduces technology enhancements across three core components: the broker, clients, and Interconnect router.
 
-## Standalone AMQ7 Broker
+=== Broker ===
+The :amq: broker, based on Apache ActiveMQ Artemis, manages connections, queues, topics, and subscriptions. The new :amq: broker has a asynchronous internal architecture, which can increase 
+performance and scalability 
+and enable it to handle more concurrent connections and achieve greater message throughput. AMQ Broker is a full-featured, message-oriented middleware broker. It offers specialized queueing 
+behaviors, message persistence, and manageability. Core messaging is provided with support for different messaging patterns such as publish-subscribe, point-to-point, and store-and-forward. AMQ 7 
+supports multiple protocols and client languages, allowing integration of many, if not all, application assets.
 
-Demonstrates AMQ7 queue & topic interactivity and various basic EIP patterns via JMS.
+=== Clients ===
+AMQ 7 expands its support of popular messaging APIs and protocols by adding new client libraries, including Java Message Service (JMS) 2.0, JavaScript, C++, .Net, and Python. With existing 
+support for the popular open protocols MQTT and AMQP, :amq: now offers broad interoperability across the IT landscape that can open up data in embedded devices to inspection, analysis, and control.
 
-```
-mvn -Dtest=SingleBrokerTest test
-```
+=== Interconnect ===
+The new Interconnect router in :amq: enables users to create an internet-scale network of uniformly-addressed messaging paths spanning data centers, cloud services, and geographic zones. The 
+interconnect component serves as the backbone for distributed messaging, providing redundant network pathing for fault handling, traffic optimization, and more secure and reliable connectivity.
 
-## 3-Node Symmetric AMQ7 Broker Cluster
+== S2I Image ==
 
-![Symmetric Broker Cluster Topology](images/Symmetric.png?raw=true "Symmetric Broker Cluster Topology")
+The S2I-Base-Image directory supplies a base build image & accompanying template set for establishing an environment on OpenShift Container Platform featuring single-broker, symmetric, 
+fault-tolerant, and brokerless Interconnect topologies.
 
-Demonstrates AMQ7 queue & topic interactivity across a 3-broker symmetric cluster via JMS.
+== Test Suite ==  
 
-```
-mvn -Dtest=SymmetricClusterTest test
-```
-
-### 3-Pair Master/Slave AMQ7 Broker Failover Cluster
-
-![Replication Cluster Topology](images/Replication.png?raw=true "Replication Cluster Topology")
-
-Demonstrates producing/consuming to/from queues before and after a master broker failover scenario via JMS.
-
-```
-mvn -Dtest=ReplicatedFailoverTest test
-```
-
-## 7-Node Interconnect Router Topology
-
-![Interconnect Topology](images/Interconnect.png?raw=true "Interconnect Topology")
-
-Demonstrates various Interconnect routing mechanisms across a topology featuring several inter-router connections and multiple endpoint listeners for client 
-connectivity via JMS.
-
-* Direct produce/consume:
-```
-mvn -Dtest=InterconnectTest#testSendDirect test
-```
-
-* Multicast from a single producer to 4 consumers:
-```
-mvn -Dtest=InterconnectTest#testSendMulticast test
-```
-
-* Balanced multi-consumer distribution with equal route weight:
-```
-mvn -Dtest=testSendBalancedSameHops test
-```
-
-* Balanced multi-consumer distribution with differentiating route weight:
-```
-mvn -Dtest=testSendBalancedDifferentHops test
-```
-
-* Single-consumer routing to closest consumer based on origin point:
-```
-mvn -Dtest=testSendClosest test
-```
+The Test-Suite directory supplies a maven-based project housing a test suite that will showcase the various topologies available after building an OpenShift environment from the provided S2I base 
+image and templates.

@@ -1,0 +1,91 @@
+<?xml version='1.0'?>
+
+<configuration xmlns="urn:activemq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
+
+    <jms xmlns="urn:activemq:jms">
+        <queue name="DLQ"/>
+        <queue name="ExpiryQueue"/>
+    </jms>
+
+    <core xmlns="urn:activemq:core">
+
+        <name>$CONTAINER_ID</name>
+        <persistence-enabled>true</persistence-enabled>
+
+        <!-- =========== DIRECTORY CONFIG =========== -->
+
+        <paging-directory>./data/paging</paging-directory>
+        <bindings-directory>./data/bindings</bindings-directory>
+        <large-messages-directory>./data/large-messages</large-messages-directory>
+
+        <!-- =========== JOURNAL CONFIG =========== -->
+
+        <journal-type>ASYNCIO</journal-type>
+        <!--<journal-type>NIO</journal-type>-->
+        <journal-directory>./data/journal</journal-directory>
+        <journal-min-files>2</journal-min-files>
+        <journal-pool-files>-1</journal-pool-files>
+        <journal-buffer-timeout>59999</journal-buffer-timeout>
+
+        <!-- =========== CONNECTION CONFIG =========== -->
+
+        <connectors>
+            <!-- default connector: ActiveMQ Artemis, OpenWire (buffered below), STOMP, AMQP, MQTT, & HornetQ -->
+            <connector name="artemis">tcp://0.0.0.0:61616</connector>
+            <connector name="amqp">tcp://0.0.0.0:5672?protocols=AMQP</connector>
+        </connectors>
+        <acceptors>
+            <acceptor name="artemis">tcp://0.0.0.0:61616</acceptor>
+            <acceptor name="amqp">tcp://0.0.0.0:5672?protocols=AMQP</acceptor>
+        </acceptors>
+
+        <!-- =========== SECURITY CONFIG =========== -->
+
+        <management-address>activemq.management</management-address>
+        <management-notification-address>jms.topic.notificationsTopic</management-notification-address>
+
+        <security-settings>
+            <security-setting match="#">
+                <permission type="createNonDurableQueue" roles="admin"/>
+                <permission type="deleteNonDurableQueue" roles="admin"/>
+                <permission type="createDurableQueue" roles="admin"/>
+                <permission type="deleteDurableQueue" roles="admin"/>
+                <permission type="consume" roles="admin"/>
+                <permission type="send" roles="admin"/>
+                <permission type="manage" roles="admin"/>
+            </security-setting>
+            <security-setting match="jms.queue.activemq.management">
+                <permission type="consume" roles="admin"/>
+                <permission type="send" roles="admin"/>
+                <permission type="manage" roles="admin"/>
+            </security-setting>
+        </security-settings>
+
+        <!-- =========== QUEUE/TOPIC CONFIG =========== -->
+
+        <address-settings>
+            <!-- default dead letter -->
+            <address-setting match="#">
+                <dead-letter-address>jms.queue.DLQ</dead-letter-address>
+                <expiry-address>jms.queue.ExpiryQueue</expiry-address>
+                <redelivery-delay>0</redelivery-delay>
+                <max-size-bytes>10485760</max-size-bytes>
+                <message-counter-history-day-limit>10</message-counter-history-day-limit>
+                <address-full-policy>BLOCK</address-full-policy>
+            </address-setting>
+        </address-settings>
+
+        <addresses>
+            <address name="test_topic">
+                <multicast/>
+            </address>
+            <address name="test_queue">
+                <anycast>
+                    <queue name="jms.queue.test_queue"/>
+                </anycast>
+            </address>
+        </addresses>
+    </core>
+</configuration>

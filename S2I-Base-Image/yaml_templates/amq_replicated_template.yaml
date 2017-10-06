@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: Template
+labels: {}
+metadata:
+  annotations:
+    description: Template for setting up replicated failback HA example
+  labels:
+    app: amq7-refarch
+  name: amq7-refarch
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: amq-replicated
+    name: amq-replicated
+  spec:
+    replicas: 1
+    selector:
+      app: amq-replicated
+      deploymentconfig: amq-replicated
+    template:
+      metadata:
+        labels:
+          app: amq-replicated
+          deploymentconfig: amq-replicated
+      spec:
+        containers:
+        - env:
+          - name: AMQ_MODE
+            value: "replicated"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 61613
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 61613
+            timeoutSeconds: 1
+          name: amq-replicated
+          ports:
+          - containerPort: 61611
+            name: m1-artemis
+            protocol: TCP
+          - containerPort: 61612
+            name: m2-artemis
+            protocol: TCP
+          - containerPort: 61613
+            name: m3-artemis
+            protocol: TCP
+          - containerPort: 8161
+            name: m1-jolokia
+            protocol: TCP
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - amq-replicated
+        from:
+          kind: ImageStreamTag
+          name: amq7-image:latest
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      service.alpha.openshift.io/dependencies: '[{"name":"replicated-m2","namespace":"","kind":"Service"},{"name":"replicated-m3","namespace":"","kind":"Service"}]'
+    labels:
+      app: amq-replicated
+    name: replicated-m1
+  spec:
+    ports:
+    - name: m1-artemis
+      protocol: TCP
+      port: 61611
+      targetPort: m1-artemis
+      nodePort: 30301
+    - name: m1-jolokia
+      protocol: TCP
+      port: 8161
+      targetPort: m1-jolokia
+      nodePort: 30351
+    type: LoadBalancer
+    selector:
+      app: amq-replicated
+      deploymentconfig: amq-replicated
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: amq-replicated
+    name: replicated-m2
+  spec:
+    ports:
+    - name: m2-artemis
+      protocol: TCP
+      port: 61612
+      targetPort: m2-artemis
+      nodePort: 30302
+    type: LoadBalancer
+    selector:
+      app: amq-replicated
+      deploymentconfig: amq-replicated
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: amq-replicated
+    name: replicated-m3
+  spec:
+    ports:
+    - name: m3-artemis
+      protocol: TCP
+      port: 61613
+      targetPort: m3-artemis
+      nodePort: 30303
+    type: LoadBalancer
+    selector:
+      app: amq-replicated
+      deploymentconfig: amq-replicated

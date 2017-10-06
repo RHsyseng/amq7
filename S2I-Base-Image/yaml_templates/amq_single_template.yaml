@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Template
+labels: {}
+metadata:
+  annotations:
+    description: Template for setting up single broker example
+  labels:
+    app: amq7-refarch
+  name: amq7-refarch
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: amq-single
+    name: amq-single
+  spec:
+    replicas: 1
+    selector:
+      app: amq-single
+      deploymentconfig: amq-single
+    template:
+      metadata:
+        labels:
+          app: amq-single
+          deploymentconfig: amq-single
+      spec:
+        containers:
+        - env:
+          - name: AMQ_MODE
+            value: "single"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5672
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5672
+            timeoutSeconds: 1
+          name: amq-single
+          ports:
+          - containerPort: 5672
+            name: amqp
+            protocol: TCP
+          - containerPort: 61616
+            name: artemis
+            protocol: TCP
+          - containerPort: 8161
+            name: jolokia
+            protocol: TCP
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - amq-single
+        from:
+          kind: ImageStreamTag
+          name: amq7-image:latest
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: amq-single
+    name: single-broker
+  spec:
+    ports:
+    - name: artemis
+      protocol: TCP
+      port: 61616
+      targetPort: artemis
+      nodePort: 30201
+    - name: jolokia
+      protocol: TCP
+      port: 8161
+      targetPort: jolokia
+      nodePort: 30251
+    - name: amqp
+      protocol: TCP
+      port: 5672
+      targetPort: amqp
+      nodePort: 30271
+    type: LoadBalancer
+    selector:
+      app: amq-single
+      deploymentconfig: amq-single

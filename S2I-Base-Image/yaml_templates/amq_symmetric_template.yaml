@@ -1,0 +1,146 @@
+apiVersion: v1
+kind: Template
+labels: {}
+metadata:
+  annotations:
+    description: Template for setting up symmetric broker cluster example
+  labels:
+    app: amq7-refarch
+  name: amq7-refarch
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: amq-symmetric
+    name: amq-symmetric
+  spec:
+    replicas: 1
+    selector:
+      app: amq-symmetric
+      deploymentconfig: amq-symmetric
+    template:
+      metadata:
+        labels:
+          app: amq-symmetric
+          deploymentconfig: amq-symmetric
+      spec:
+        containers:
+        - env:
+          - name: AMQ_MODE
+            value: "symmetric"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 61611
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 61611
+            timeoutSeconds: 1
+          name: amq-symmetric
+          ports:
+          - containerPort: 61611
+            name: symmetric-1
+            protocol: TCP
+          - containerPort: 61612
+            name: symmetric-2
+            protocol: TCP
+          - containerPort: 61613
+            name: symmetric-3
+            protocol: TCP
+          - containerPort: 8161
+            name: sym1-jolokia
+            protocol: TCP
+          - containerPort: 8162
+            name: sym2-jolokia
+            protocol: TCP
+          - containerPort: 8163
+            name: sym3-jolokia
+            protocol: TCP
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - amq-symmetric
+        from:
+          kind: ImageStreamTag
+          name: amq7-image:latest
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      service.alpha.openshift.io/dependencies: '[{"name":"symmetric-2","namespace":"","kind":"Service"},{"name":"symmetric-3","namespace":"","kind":"Service"}]'
+    labels:
+      app: amq-symmetric
+    name: symmetric-1
+  spec:
+    ports:
+    - name: symmetric-1
+      protocol: TCP
+      port: 61611
+      targetPort: symmetric-1
+      nodePort: 30401
+    - name: sym1-jolokia
+      protocol: TCP
+      port: 8161
+      targetPort: sym1-jolokia
+      nodePort: 30451
+    type: LoadBalancer
+    selector:
+      app: amq-symmetric
+      deploymentconfig: amq-symmetric
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: amq-symmetric
+    name: symmetric-2
+  spec:
+    ports:
+    - name: symmetric-2
+      protocol: TCP
+      port: 61612
+      targetPort: symmetric-2
+      nodePort: 30402
+    - name: sym2-jolokia
+      protocol: TCP
+      port: 8161
+      targetPort: sym2-jolokia
+      nodePort: 30452
+    type: LoadBalancer
+    selector:
+      app: amq-symmetric
+      deploymentconfig: amq-symmetric
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: amq-symmetric
+    name: symmetric-3
+  spec:
+    ports:
+    - name: symmetric-3
+      protocol: TCP
+      port: 61613
+      targetPort: symmetric-3
+      nodePort: 30403
+    - name: sym3-jolokia
+      protocol: TCP
+      port: 8161
+      targetPort: sym3-jolokia
+      nodePort: 30453
+    type: LoadBalancer
+    selector:
+      app: amq-symmetric
+      deploymentconfig: amq-symmetric

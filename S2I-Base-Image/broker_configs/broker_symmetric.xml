@@ -1,0 +1,100 @@
+<?xml version='1.0'?>
+
+<configuration xmlns="urn:activemq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
+
+    <jms xmlns="urn:activemq:jms">
+        <queue name="DLQ"/>
+        <queue name="ExpiryQueue"/>
+    </jms>
+
+    <core xmlns="urn:activemq:core">
+
+        <name>$CONTAINER_ID</name>
+        <persistence-enabled>true</persistence-enabled>
+
+        <!-- =========== DIRECTORY CONFIG =========== -->
+
+        <paging-directory>./data/paging</paging-directory>
+        <bindings-directory>./data/bindings</bindings-directory>
+        <large-messages-directory>./data/large-messages</large-messages-directory>
+
+        <!-- =========== JOURNAL CONFIG =========== -->
+
+        <journal-type>ASYNCIO</journal-type>
+        <!--<journal-type>NIO</journal-type>-->
+        <journal-directory>./data/journal</journal-directory>
+        <journal-min-files>2</journal-min-files>
+        <journal-pool-files>-1</journal-pool-files>
+        <journal-buffer-timeout>59999</journal-buffer-timeout>
+
+        <!-- =========== CONNECTION CONFIG =========== -->
+
+        <connectors>
+            <!-- default connector: ActiveMQ Artemis, OpenWire (buffered below), STOMP, AMQP, MQTT, & HornetQ -->
+            <connector name="artemis">tcp://0.0.0.0:${ARTEMIS_PORT}</connector>
+        </connectors>
+        <acceptors>
+            <acceptor name="artemis">tcp://0.0.0.0:${ARTEMIS_PORT}</acceptor>
+        </acceptors>
+
+        <!-- =========== CLUSTERING CONFIG =========== -->
+
+        <broadcast-groups>
+            <broadcast-group name="test-broadcast-group">
+                <group-address>${udp-address:231.7.7.7}</group-address>
+                <group-port>9876</group-port>
+                <broadcast-period>100</broadcast-period>
+                <connector-ref>artemis</connector-ref>
+            </broadcast-group>
+        </broadcast-groups>
+
+        <discovery-groups>
+            <discovery-group name="test-discovery-group">
+                <group-address>${udp-address:231.7.7.7}</group-address>
+                <group-port>9876</group-port>
+                <refresh-timeout>10000</refresh-timeout>
+            </discovery-group>
+        </discovery-groups>
+
+        <cluster-connections>
+            <cluster-connection name="test-cluster">
+                <connector-ref>artemis</connector-ref>
+                <retry-interval>500</retry-interval>
+                <use-duplicate-detection>true</use-duplicate-detection>
+                <message-load-balancing>ON_DEMAND</message-load-balancing>
+                <max-hops>1</max-hops>
+                <discovery-group-ref discovery-group-name="test-discovery-group"/>
+            </cluster-connection>
+        </cluster-connections>
+
+        <!-- =========== SECURITY CONFIG =========== -->
+
+        <security-settings>
+            <security-setting match="#">
+                <permission type="createNonDurableQueue" roles="admin"/>
+                <permission type="deleteNonDurableQueue" roles="admin"/>
+                <permission type="createDurableQueue" roles="admin"/>
+                <permission type="deleteDurableQueue" roles="admin"/>
+                <permission type="consume" roles="admin"/>
+                <permission type="send" roles="admin"/>
+                <permission type="manage" roles="admin"/>
+            </security-setting>
+        </security-settings>
+
+        <!-- =========== QUEUE/TOPIC CONFIG =========== -->
+
+        <addresses>
+            <address name="test_topic">
+                <multicast/>
+            </address>
+            <address name="test_queue">
+                <anycast>
+                    <queue name="jms.queue.test_queue"/>
+                </anycast>
+            </address>
+        </addresses>
+
+    </core>
+</configuration>

@@ -1,0 +1,150 @@
+<?xml version='1.0'?>
+
+<configuration xmlns="urn:activemq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
+
+    <core xmlns="urn:activemq:core">
+
+        <persistence-enabled>true</persistence-enabled>
+
+        <!-- =========== DIRECTORY CONFIG =========== -->
+
+        <paging-directory>./data/paging</paging-directory>
+        <bindings-directory>./data/bindings</bindings-directory>
+        <large-messages-directory>./data/large-messages</large-messages-directory>
+
+        <!-- =========== JOURNAL CONFIG =========== -->
+
+        <journal-type>ASYNCIO</journal-type>
+        <journal-directory>./data/journal</journal-directory>
+        <journal-min-files>2</journal-min-files>
+        <journal-pool-files>-1</journal-pool-files>
+        <journal-buffer-timeout>59999</journal-buffer-timeout>
+
+        <!-- =========== CONNECTION CONFIG =========== -->
+
+        <connectors>
+            <!-- default connector: ActiveMQ Artemis, OpenWire, STOMP, AMQP, MQTT, & HornetQ -->
+            <connector name="artemis">tcp://0.0.0.0:${ARTEMIS_PORT}</connector>
+        </connectors>
+        <acceptors>
+            <acceptor name="artemis">tcp://0.0.0.0:${ARTEMIS_PORT}</acceptor>
+        </acceptors>
+
+        <!-- =========== CLUSTERING CONFIG =========== -->
+
+        <cluster-user>exampleUser</cluster-user>
+        <cluster-password>secret</cluster-password>
+
+        <broadcast-groups>
+            <broadcast-group name="test-broadcast-group">
+                <group-address>${udp-address:231.7.7.7}</group-address>
+                <group-port>9876</group-port>
+                <broadcast-period>5000</broadcast-period>
+                <connector-ref>artemis</connector-ref>
+            </broadcast-group>
+        </broadcast-groups>
+
+        <discovery-groups>
+            <discovery-group name="test-discovery-group">
+                <group-address>${udp-address:231.7.7.7}</group-address>
+                <group-port>9876</group-port>
+                <refresh-timeout>10000</refresh-timeout>
+            </discovery-group>
+        </discovery-groups>
+
+        <cluster-connections>
+            <cluster-connection name="test-cluster">
+                <connector-ref>artemis</connector-ref>
+                <discovery-group-ref discovery-group-name="test-discovery-group"/>
+            </cluster-connection>
+        </cluster-connections>
+
+        <!-- =========== HIGH AVAILABILITY CONFIG =========== -->
+
+        <ha-policy>
+            <replication>
+                <slave/>
+            </replication>
+        </ha-policy>
+
+        <!-- =========== SECURITY CONFIG =========== -->
+
+        <management-address>activemq.management</management-address>
+        <management-notification-address>jms.topic.notificationsTopic</management-notification-address>
+
+        <security-settings>
+            <security-setting match="#">
+                <permission type="createNonDurableQueue" roles="admin"/>
+                <permission type="deleteNonDurableQueue" roles="admin"/>
+                <permission type="createDurableQueue" roles="admin"/>
+                <permission type="deleteDurableQueue" roles="admin"/>
+                <permission type="createAddress" roles="admin"/>
+                <permission type="deleteAddress" roles="admin"/>
+                <permission type="consume" roles="admin"/>
+                <permission type="browse" roles="admin"/>
+                <permission type="send" roles="admin"/>
+                <!-- we need this otherwise ./artemis data imp wouldn't work -->
+                <permission type="manage" roles="admin"/>
+            </security-setting>
+            <security-setting match="jms.queue.activemq.management">
+                <permission type="consume" roles="admin"/>
+                <permission type="send" roles="admin"/>
+                <permission type="manage" roles="admin" />
+            </security-setting>
+        </security-settings>
+
+        <!-- =========== QUEUE/TOPIC CONFIG =========== -->
+
+        <address-settings>
+            <!-- if you define auto-create on certain queues, management has to be auto-create -->
+            <address-setting match="activemq.management#">
+                <dead-letter-address>DLQ</dead-letter-address>
+                <expiry-address>ExpiryQueue</expiry-address>
+                <redelivery-delay>0</redelivery-delay>
+                <!-- with -1 only the global-max-size is in use for limiting -->
+                <max-size-bytes>-1</max-size-bytes>
+                <message-counter-history-day-limit>10</message-counter-history-day-limit>
+                <address-full-policy>PAGE</address-full-policy>
+                <auto-create-queues>true</auto-create-queues>
+                <auto-create-addresses>true</auto-create-addresses>
+                <auto-create-jms-queues>true</auto-create-jms-queues>
+                <auto-create-jms-topics>true</auto-create-jms-topics>
+            </address-setting>
+            <!--default for catch all-->
+            <address-setting match="#">
+                <dead-letter-address>DLQ</dead-letter-address>
+                <expiry-address>ExpiryQueue</expiry-address>
+                <redelivery-delay>0</redelivery-delay>
+                <!-- with -1 only the global-max-size is in use for limiting -->
+                <max-size-bytes>-1</max-size-bytes>
+                <message-counter-history-day-limit>10</message-counter-history-day-limit>
+                <address-full-policy>PAGE</address-full-policy>
+                <auto-create-queues>true</auto-create-queues>
+                <auto-create-addresses>true</auto-create-addresses>
+                <auto-create-jms-queues>true</auto-create-jms-queues>
+                <auto-create-jms-topics>true</auto-create-jms-topics>
+            </address-setting>
+        </address-settings>
+
+        <addresses>
+            <address name="test_queue">
+                <anycast>
+                    <queue name="jms.queue.test_queue"/>
+                </anycast>
+            </address>
+            <address name="DLQ">
+                <anycast>
+                    <queue name="DLQ" />
+                </anycast>
+            </address>
+            <address name="ExpiryQueue">
+                <anycast>
+                    <queue name="ExpiryQueue" />
+                </anycast>
+            </address>
+        </addresses>
+
+    </core>
+</configuration>
