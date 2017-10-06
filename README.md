@@ -5,13 +5,13 @@ multicast Interconnect routing configurations.
 
 ## Overview
 Based on the upstream _Apache ActiveMQ_ and _Apache Qpid_ community projects, _Red Hat JBoss AMQ 7_ is a lightweight, standards-based open source messaging platform designed to enable real-time 
-communication between different applications, services, devices, and Internet of Things (IoT) devices. It also serves as the messaging foundation for Red Hat JBoss Fuse, Red Hat’s lightweight, 
+communication between different applications, services, devices, and Internet of Things (IoT) devices. It also serves as the messaging foundation for *Red Hat JBoss Fuse*, Red Hat’s lightweight, 
 flexible integration platform, and is designed to provide the real-time, distributed messaging capabilities needed to support an agile integration approach for modern application development.
 
 AMQ 7 introduces technology enhancements across three core components: the broker, clients, and Interconnect router.
 
 ###  Broker
-The AMQ 7 broker, based on _Apache ActiveMQ Artemis_, manages connections, queues, topics, and subscriptions. The new broker has an asynchronous internal architecture, which can increase 
+The AMQ 7 broker, based on _Apache ActiveMQ Artemis_, manages connections, queues, topics, and subscriptions. The new broker has an asynchronous internal architecture which can increase 
 performance and scalability and enable it to handle more concurrent connections and achieve greater message throughput. AMQ 7 Broker is a full-featured, message-oriented middleware broker. It 
 offers specialized queueing behaviors, message persistence, and manageability. Core messaging is provided with support for different messaging patterns such as publish-subscribe, point-to-point, 
 and store-and-forward. AMQ 7 supports multiple protocols and client languages, allowing integration of many, if not all, application assets.
